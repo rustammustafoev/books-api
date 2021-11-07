@@ -6,13 +6,23 @@ from store.serializers import BooksSerializer
 
 
 class BooksApiTestCase(APITestCase):
-    def test_get(self):
-        book_1 = Book.objects.create(name='Rework', price=75.00)
-        book_2 = Book.objects.create(name='Everything is figureoutable', price=80.00)
+    def setUp(self) -> None:  # this method will run every time new test would be executed
+        self.book_1 = Book.objects.create(name='Rework', price=75.00, author="Author 1")
+        self.book_2 = Book.objects.create(name='Everything is figureoutable', price=80.00, author="Maria")
+        self.book_3 = Book.objects.create(name='Never give up Maria', price=90.00, author="Author 3")
+
+    def test_get_data(self):
         url = reverse('book-list')
         print(url)
         response = self.client.get(url)
-        serializer_data = BooksSerializer([book_1, book_2], many=True).data
+        serializer_data = BooksSerializer([self.book_1, self.book_2, self.book_3], many=True). data
         self.assertEqual(serializer_data, response.data)
         self.assertEqual(status.HTTP_200_OK, response.status_code)
         print(response.data)
+
+    def test_get_search(self):
+        url = reverse('book-list')
+        response = self.client.get(url, data={'search': 'Maria'})
+        serializer_data = BooksSerializer([self.book_2, self.book_3], many=True).data
+        self.assertEqual(serializer_data, response.data)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
